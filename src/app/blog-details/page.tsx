@@ -5,9 +5,33 @@ import Image from "next/image";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Blog Details Page | Free Next.js Template for Startup and SaaS",
-  description: "This is Blog Details Page for Startup Nextjs Template",
-  // other metadata
+  title: "Blog Post - Motor Auto Care",
+  description:
+    "Read in-depth articles on bike and e-bike maintenance, troubleshooting, and repair solutions. Stay informed with expert insights from Motor Auto Care.",
+  keywords: [
+    "bike repair article",
+    "e-bike maintenance guide",
+    "motorcycle servicing tips",
+    "bike troubleshooting solutions",
+    "two-wheeler repair blog",
+    "bike care tips",
+  ],
+  openGraph: {
+    title: "Blog Post - Motor Auto Care",
+    description:
+      "Learn expert techniques and solutions for bike and e-bike maintenance. Read our latest blog posts for practical tips and industry updates.",
+    images: [
+      {
+        url: "/assets/images/blog-details-bg.jpg",
+        width: 800,
+        height: 600,
+        alt: "Motor Auto Care Blog Post - Bike & E-Bike Repair",
+      },
+    ],
+    type: "article",
+    url: "https://motorautocare.com/blog/{post-slug}",
+    siteName: "Motor Auto Care",
+  },
 };
 
 const BlogDetailsPage = () => {

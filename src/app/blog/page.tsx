@@ -5,10 +5,36 @@ import Breadcrumb from "@/components/Common/Breadcrumb";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Blog Page | Free Next.js Template for Startup and SaaS",
-  description: "This is Blog Page for Startup Nextjs Template",
-  // other metadata
+  title: "Blog - Motor Auto Care",
+  description:
+    "Stay updated with the latest tips, guides, and insights on bike and e-bike maintenance. Explore expert advice, industry trends, and repair solutions from Motor Auto Care.",
+  keywords: [
+    "bike repair blog",
+    "e-bike maintenance tips",
+    "motorcycle service guide",
+    "two-wheeler repair insights",
+    "bike tuning articles",
+    "battery replacement tips",
+    "bike servicing news",
+  ],
+  openGraph: {
+    title: "Blog - Motor Auto Care",
+    description:
+      "Explore expert tips and in-depth guides on bike and e-bike repairs. Stay informed with the latest trends in two-wheeler maintenance and servicing.",
+    images: [
+      {
+        url: "/assets/images/blog-bg.jpg",
+        width: 800,
+        height: 600,
+        alt: "Motor Auto Care Blog - Bike & E-Bike Tips",
+      },
+    ],
+    type: "website",
+    url: "https://motorautocare.com/blog",
+    siteName: "Motor Auto Care",
+  },
 };
+
 
 const Blog = () => {
   return (
