@@ -15,7 +15,7 @@ const Hero = () => {
                   Expert Bike & E-Bike Repair Services – Motor Auto Care
                 </h1>
                 <p className="mb-12 text-base !leading-relaxed text-body-color dark:text-body-color-dark sm:text-lg md:text-xl">
-                  At <strong>Motor Auto Care</strong>, we provide expert repair and maintenance services for bikes and e-bikes. Whether it's a routine check-up, battery replacement, or complex repairs, our skilled technicians ensure top-notch service to keep your ride smooth and safe. Visit us today and experience quality service you can trust!
+                  At <strong>Motor Auto Care</strong>, we provide expert repair and maintenance services for bikes and e-bikes. Whether it&apos;s a routine check-up, battery replacement, or complex repairs, our skilled technicians ensure top-notch service to keep your ride smooth and safe. Visit us today and experience quality service you can trust!
                 </p>
                 <div className="flex flex-col items-center justify-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
                   <Link
