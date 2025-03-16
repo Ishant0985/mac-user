@@ -2,21 +2,74 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { db } from "@/lib/firebase";
+import { collection, addDoc, query, where, getDocs, deleteDoc } from "firebase/firestore";
+import { useAuth, useUser } from '@clerk/nextjs';
+import { toast } from 'react-hot-toast';
 
 const NewsLatterBox = () => {
   const { theme } = useTheme();
-  // Add mounted state to prevent hydration mismatch
+  const { userId } = useAuth();
+  const { user } = useUser();
+  const [email, setEmail] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [lastSubscriptionTime, setLastSubscriptionTime] = useState<Date | null>(null);
 
-  // Only render the component after it's mounted on the client
+  const stopColor = theme === "dark" ? "#959CB1" : "#556170";
+
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (user) {
+      setEmail(user.primaryEmailAddress.emailAddress);
+      checkSubscriptionStatus();
+    }
+  }, [user]);
 
-  // Default color to use during SSR
-  const defaultColor = "#4A6CF7";
-  // Only use theme-dependent color after component is mounted
-  const stopColor = mounted ? (theme === "light" ? "#4A6CF7" : "#fff") : defaultColor;
+  const checkSubscriptionStatus = async () => {
+    if (!email) return;
+    const q = query(collection(db, "newsletter-emails"), where("email", "==", email));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      setIsSubscribed(true);
+      const doc = querySnapshot.docs[0];
+      setLastSubscriptionTime(doc.data().timestamp.toDate());
+    }
+  };
+
+  const handleSubscribe = async (event) => {
+    event.preventDefault();
+    if (!userId) {
+      toast.error('You must be logged in to subscribe to the newsletter.');
+      return;
+    }
+
+    try {
+      if (isSubscribed) {
+        if (lastSubscriptionTime && new Date().getTime() - lastSubscriptionTime.getTime() < 5 * 60 * 1000) {
+          toast.error("Please wait 5 minutes before unsubscribing");
+          return;
+        }
+
+        const q = query(collection(db, "newsletter-emails"), where("email", "==", email));
+        const querySnapshot = await getDocs(q);
+        await deleteDoc(querySnapshot.docs[0].ref);
+        setIsSubscribed(false);
+        toast.success("You have successfully unsubscribed from the newsletter!");
+      } else {
+        await addDoc(collection(db, "newsletter-emails"), {
+          email: email,
+          timestamp: new Date(),
+        });
+        setIsSubscribed(true);
+        setLastSubscriptionTime(new Date());
+        toast.success("You have successfully subscribed to the newsletter!");
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+      toast.error("There was an error. Please try again later.");
+    }
+  };
 
   return (
     <div className="relative z-10 rounded-sm bg-white p-8 shadow-three dark:bg-gray-dark sm:p-11 lg:p-8 xl:p-11">
@@ -27,7 +80,7 @@ const NewsLatterBox = () => {
         Lorem ipsum dolor sited Sed ullam corper consectur adipiscing Mae ornare
         massa quis lectus.
       </p>
-      <div>
+      <form onSubmit={handleSubscribe}>
         <input
           type="text"
           name="name"
@@ -37,20 +90,21 @@ const NewsLatterBox = () => {
         <input
           type="email"
           name="email"
+          value={email}
+          readOnly
           placeholder="Enter your email"
           className="border-stroke mb-4 w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:text-body-color-dark dark:shadow-two dark:focus:border-primary dark:focus:shadow-none"
         />
         <input
           type="submit"
-          value="Subscribe"
+          value={isSubscribed ? "Unsubscribe" : "Subscribe"}
           className="mb-5 flex w-full cursor-pointer items-center justify-center rounded-sm bg-primary px-9 py-4 text-base font-medium text-white shadow-submit duration-300 hover:bg-primary/90 dark:shadow-submit-dark"
         />
         <p className="text-center text-base leading-relaxed text-body-color dark:text-body-color-dark">
           No spam guaranteed, So please don&apos;t send any spam mail.
         </p>
-      </div>
+      </form>
 
-      {/* Only render SVGs after component is mounted to prevent hydration mismatch */}
       {mounted && (
         <div>
           <span className="absolute left-2 top-7">

@@ -1,7 +1,7 @@
-import type { JSX } from "react";
-export type Feature = {
-  id: number;
-  icon: JSX.Element;
+// src/types/feature.ts
+export interface Feature {
+  id: string;
   title: string;
   paragraph: string;
-};
+  icon?: string;
+}

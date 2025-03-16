@@ -1,6 +1,68 @@
+"use client";
+
 import NewsLatterBox from "./NewsLatterBox";
+import { db } from "@/lib/firebase";
+import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
+import { useUser } from '@clerk/nextjs';
+import { useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { FormEvent } from 'react';
 
 const Contact = () => {
+  const { user, isSignedIn } = useUser();
+  const [email, setEmail] = useState('');
+  const [lastMessageTime, setLastMessageTime] = useState<Date | null>(null);
+
+  useEffect(() => {
+    if (user?.primaryEmailAddress?.emailAddress) {
+      setEmail(user.primaryEmailAddress.emailAddress);
+      checkLastMessageTime();
+    }
+  }, [user]);
+
+  const checkLastMessageTime = async () => {
+    if (!email) return;
+    const q = query(collection(db, "contact-us"), 
+      where("email", "==", email),
+      where("timestamp", ">=", new Date(Date.now() - 5 * 60 * 1000))
+    );
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      setLastMessageTime(querySnapshot.docs[0].data().timestamp.toDate());
+    }
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!isSignedIn) {
+      toast.error('You must be logged in to send a message.');
+      return;
+    }
+
+    if (lastMessageTime && new Date().getTime() - lastMessageTime.getTime() < 5 * 60 * 1000) {
+      toast.error("Please wait 5 minutes before sending another message");
+      return;
+    }
+
+    const form = event.target as HTMLFormElement;
+    const name = form.elements.namedItem('name') as HTMLInputElement;
+    const message = form.elements.namedItem('message') as HTMLTextAreaElement;
+    try {
+      await addDoc(collection(db, 'contact-us'), {
+        name: name.value,
+        email: email,
+        message: message.value,
+        timestamp: new Date(),
+      });
+      setLastMessageTime(new Date());
+      form.reset();
+      toast.success('Your message has been sent successfully!');
+    } catch (error) {
+      console.error('Error adding document: ', error);
+      toast.error('There was an error sending your message. Please try again later.');
+    }
+  };
+
   return (
     <section id="contact" className="overflow-hidden py-16 md:py-20 lg:py-28">
       <div className="container">
@@ -17,7 +79,7 @@ const Contact = () => {
               <p className="mb-12 text-base font-medium text-body-color">
                 Our support team will get back to you ASAP via email.
               </p>
-              <form>
+              <form onSubmit={handleSubmit}>
                 <div className="-mx-4 flex flex-wrap">
                   <div className="w-full px-4 md:w-1/2">
                     <div className="mb-8">
@@ -29,6 +91,7 @@ const Contact = () => {
                       </label>
                       <input
                         type="text"
+                        name="name"
                         placeholder="Enter your name"
                         className="border-stroke w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:text-body-color-dark dark:shadow-two dark:focus:border-primary dark:focus:shadow-none"
                       />
@@ -44,6 +107,9 @@ const Contact = () => {
                       </label>
                       <input
                         type="email"
+                        name="email"
+                        value={email}
+                        readOnly
                         placeholder="Enter your email"
                         className="border-stroke w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:text-body-color-dark dark:shadow-two dark:focus:border-primary dark:focus:shadow-none"
                       />
